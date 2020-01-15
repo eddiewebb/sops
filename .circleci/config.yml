@@ -27,7 +27,14 @@ jobs:
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
                 ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "latest"
                 ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$CIRCLE_SHA1"
-                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "${CIRCLE_TAG#v}"
+
+                # Update all semvers affected
+                MAJOR=$(semver get major ${CIRCLE_TAG#v})
+                MINOR=$(semver get minor ${CIRCLE_TAG#v})
+                PATCH=$(semver get patch ${CIRCLE_TAG#v})
+                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR"
+                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR"
+                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR.$PATCH"
             fi
 
   semver-proof:
@@ -56,6 +63,9 @@ jobs:
           name: Build containers
           command: |
             docker build -t mozilla/sops .
+      - run:
+          name: Tag containers
+          command: |
             docker tag mozilla/sops "mozilla/sops:$CIRCLE_SHA1"
             # Update all semvers affected
             MAJOR=$(semver get major ${CIRCLE_TAG#v})
