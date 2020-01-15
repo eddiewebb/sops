@@ -4,7 +4,9 @@ workflows:
   build-and-deploy:
     jobs:
       - build
-      - semver-proof:        
+      - push:
+          requires:
+            - build        
           filters:
             tags:
               only: /^v.*/
@@ -21,23 +23,8 @@ jobs:
           command: |
             docker build -t mozilla/sops .
             docker tag mozilla/sops "mozilla/sops:$CIRCLE_SHA1"
-      - run:
-          name: Push containers
-          command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "latest"
-                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$CIRCLE_SHA1"
 
-                # Update all semvers affected
-                MAJOR=$(semver get major ${CIRCLE_TAG#v})
-                MINOR=$(semver get minor ${CIRCLE_TAG#v})
-                PATCH=$(semver get patch ${CIRCLE_TAG#v})
-                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR"
-                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR"
-                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR.$PATCH"
-            fi
-
-  semver-proof:
+  push:
     machine: true
     resource_class: large
     steps:
@@ -48,7 +35,12 @@ jobs:
             curl "https://raw.githubusercontent.com/fsaintjacques/semver-tool/d66113a6803dbffca2a3830e207a6795a8516cd1/src/semver" > semver.bash
             sudo mv semver.bash /usr/local/bin/semver
             sudo chmod a+x  /usr/local/bin/semver
-            semver get minor ${CIRCLE_TAG#v}
+            MAJOR=$(semver get major ${CIRCLE_TAG#v})
+            MINOR=$(semver get minor ${CIRCLE_TAG#v})
+            PATCH=$(semver get patch ${CIRCLE_TAG#v})
+            echo "export MAJOR=${MAJOR}" >> $BASH_ENV
+            echo "export MINOR=${MINOR}" >> $BASH_ENV
+            echo "export PATCH=${PATCH}" >> $BASH_ENV
       - run:
           when: on_fail
           name: semver error info
@@ -68,24 +60,19 @@ jobs:
           command: |
             docker tag mozilla/sops "mozilla/sops:$CIRCLE_SHA1"
             # Update all semvers affected
-            MAJOR=$(semver get major ${CIRCLE_TAG#v})
-            MINOR=$(semver get minor ${CIRCLE_TAG#v})
-            PATCH=$(semver get patch ${CIRCLE_TAG#v})
+            echo "Tag mozilla/sops:$MAJOR"
             docker tag mozilla/sops "mozilla/sops:$MAJOR"
+            echo "Tag mozilla/sops:$MAJOR.$MINOR"
             docker tag mozilla/sops "mozilla/sops:$MAJOR.$MINOR"
+            echo "Tag mozilla/sops:$MAJOR.$MINOR.$PATCH"
             docker tag mozilla/sops "mozilla/sops:$MAJOR.$MINOR.$PATCH"
+            docker images
       - run:
           name: Push containers
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "latest"
-                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$CIRCLE_SHA1"
+            ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "latest"
+            ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$CIRCLE_SHA1"
 
-                # Update all semvers affected
-                MAJOR=$(semver get major ${CIRCLE_TAG#v})
-                MINOR=$(semver get minor ${CIRCLE_TAG#v})
-                PATCH=$(semver get patch ${CIRCLE_TAG#v})
-                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR"
-                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR"
-                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR.$PATCH"
-            fi
+            ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR"
+            ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR"
+            ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR.$PATCH"
