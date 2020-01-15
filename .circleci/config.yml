@@ -17,7 +17,6 @@ jobs:
     resource_class: large
     steps:
       - checkout
-      - setup_remote_docker
       - run:
           name: Build containers
           command: |
