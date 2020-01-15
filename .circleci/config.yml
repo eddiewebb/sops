@@ -13,8 +13,8 @@ workflows:
 jobs:
   build:
     working_directory: /go/src/go.mozilla.org/sops
-    docker:
-      - image: circle/go:1.13
+    machine: true
+    resource_class: large
     steps:
       - checkout
       - setup_remote_docker
