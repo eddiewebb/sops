@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: /go/src/go.mozilla.org/sops
     docker:
-      - image: circleci/golang:1.13
+      - image: cimg/go:1.13
     steps:
       - checkout
       - setup_remote_docker
@@ -18,4 +18,5 @@ jobs:
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
                 ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "latest"
                 ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$CIRCLE_SHA1"
+                ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$CIRCLE_TAG"
             fi
