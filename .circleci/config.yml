@@ -52,7 +52,6 @@ jobs:
             This should only run on workflows triggered by a tag. THe tag name should follow conventions 
             documented at https://github.com/fsaintjacques/semver-tool
             EOF
-      - setup_remote_docker
       - run:
           name: Build containers
           command: |
