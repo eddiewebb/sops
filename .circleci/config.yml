@@ -31,9 +31,8 @@ jobs:
             fi
 
   semver-proof:
-    working_directory: /go/src/go.mozilla.org/sops
-    docker:
-      - image: cimg/go:1.13
+    machine: true
+    resource_class: large
     steps:
       - checkout
       - run: 
@@ -47,7 +46,7 @@ jobs:
           when: on_fail
           name: semver error info
           command: |
-            cat << EOF
+            cat \<< EOF
             This job uses a simple library to ensure the TAG is a valid version to publish.
 
             This should only run on workflows triggered by a tag. THe tag name should follow conventions 
