@@ -44,36 +44,45 @@ jobs:
             echo "export PATCH=${PATCH}" >> $BASH_ENV
       - run:
           when: on_fail
-          name: semver error info
+          name: semver error message
           command: |
             cat \<< EOF
-            This job uses a simple library to ensure the TAG is a valid version to publish.
+            Failure Info:
 
-            This should only run on workflows triggered by a tag. THe tag name should follow conventions 
-            documented at https://github.com/fsaintjacques/semver-tool
+            This job uses a simple semver library to ensure the TAG is a valid version to publish.
+
+            - This should only run on workflows triggered by a tag. 
+            - The tag name should be a semver like 'v1.2.3' 
+            - The version should follow conventions documented at https://github.com/fsaintjacques/semver-tool
             EOF
       - run:
           name: Build containers
           command: |
             docker build -t mozilla/sops .
       - run:
-          name: Tag containers
+          name: Tag & Push containers
           command: |
-            docker tag mozilla/sops "mozilla/sops:$CIRCLE_SHA1"
-            # Update all semvers affected
-            echo "Tag mozilla/sops:$MAJOR"
-            docker tag mozilla/sops "mozilla/sops:$MAJOR"
-            echo "Tag mozilla/sops:$MAJOR.$MINOR"
-            docker tag mozilla/sops "mozilla/sops:$MAJOR.$MINOR"
-            echo "Tag mozilla/sops:$MAJOR.$MINOR.$PATCH"
-            docker tag mozilla/sops "mozilla/sops:$MAJOR.$MINOR.$PATCH"
-            docker images
-      - run:
-          name: Push containers
-          command: |
+            #latest
             src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "latest"
+
+            # by sha
+
+            echo "Tag and push mozilla/sops:$CIRCLE_SHA1"
+            docker tag mozilla/sops "mozilla/sops:$CIRCLE_SHA1"
             src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$CIRCLE_SHA1"
 
-            src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR"
-            src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR"
-            src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR.$PATCH"
+            # by semver
+            # v1.2.3
+            echo "Tag and Push mozilla/sops:v$MAJOR.$MINOR.$PATCH"
+            docker tag mozilla/sops "mozilla/sops:v$MAJOR.$MINOR.$PATCH"
+            src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "v$MAJOR.$MINOR.$PATCH"
+            # v1.2
+            echo "Tag and Push mozilla/sops:v$MAJOR.$MINOR"
+            docker tag mozilla/sops "mozilla/sops:v$MAJOR.$MINOR"
+            src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "v$MAJOR.$MINOR"
+            # v1
+            echo "Tag and Push mozilla/sops:v$MAJOR"
+            docker tag mozilla/sops "mozilla/sops:v$MAJOR"
+            src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "v$MAJOR"
+
+
