@@ -28,7 +28,6 @@ jobs:
   push:
     machine: true
     resource_class: large
-    working_directory: /usr/local/go_workspace/src/go.mozilla.org/sops
     steps:
       - checkout
       - run: 
@@ -72,9 +71,9 @@ jobs:
       - run:
           name: Push containers
           command: |
-            ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "latest"
-            ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$CIRCLE_SHA1"
+            src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "latest"
+            src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$CIRCLE_SHA1"
 
-            ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR"
-            ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR"
-            ${GOPATH}/src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR.$PATCH"
+            src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR"
+            src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR"
+            src/go.mozilla.org/sops/bin/ci/deploy_dockerhub.sh "$MAJOR.$MINOR.$PATCH"
