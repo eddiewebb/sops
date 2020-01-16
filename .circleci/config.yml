@@ -13,7 +13,8 @@ workflows:
 jobs:
   build:
     working_directory: /go/src/go.mozilla.org/sops
-    machine: true
+    docker:
+      - image: circleci/golang:1.13
     resource_class: large
     steps:
       - checkout
