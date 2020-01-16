@@ -7,7 +7,9 @@ workflows:
       - push:     
           filters:
             tags:
-              only: /^v.*/
+              only: /^v.*/   
+            branches:
+              ignore: /.*/
 jobs:
   build:
     working_directory: /go/src/go.mozilla.org/sops
@@ -26,6 +28,7 @@ jobs:
   push:
     machine: true
     resource_class: large
+    working_directory: /usr/local/go_workspace/src/go.mozilla.org/sops
     steps:
       - checkout
       - run: 
